@@ -1,8 +1,8 @@
 # Experimental Validation Setup for Optimal Design Testing
 
-This repository contains the experimental setup and image-processing workflow used to validate the deformation behaviour of optimized Fin-Ray finger designs under controlled contact conditions.
+An experimental and image-processing framework for validating the **deformation behaviour of optimized Fin-Ray finger designs** under controlled contact conditions.
 
-The experimental validation combines:
+The validation framework integrates:
 
 - Dynamixel-based finger actuation
 - An Ecoflex 00-50 deformable half-proxy with a rigid core
@@ -17,13 +17,15 @@ The overall experimental setup and validation procedure are illustrated below.
   <img src="Experimental_setup_for_validation.jpeg" alt="Experimental setup for validation" width="95%">
 </p>
 
+---
+
 ## Experimental Displacement Measurement
 
-The three-dimensional fingertip displacement of the Fin-Ray finger was experimentally quantified using a calibrated multi-view marker-tracking approach. A red marker attached to the fingertip was tracked between the initial and deformed configurations from two approximately orthogonal camera views.
+Three-dimensional fingertip displacement is quantified using a calibrated multi-view marker-tracking approach. A red marker attached to the fingertip is tracked between the initial and deformed configurations using two approximately orthogonal camera views.
 
-The imaging system was first calibrated using a known 13-mm displacement to determine a pixel-to-millimetre conversion factor. For marker localization, each image was converted from BGR to HSV colour space, and the red marker was isolated using dual-range HSV colour thresholding to account for the hue wrap-around of red. The resulting binary masks were combined, followed by contour extraction and largest-contour selection to identify the marker region. Its centre was then determined using spatial image moments and centroid estimation.
+The imaging system is calibrated using a known 13-mm displacement to determine the pixel-to-millimetre conversion factor. For marker localization, each image is converted from BGR to HSV colour space, and the red marker is isolated using dual-range HSV thresholding to account for the hue wrap-around of red. The resulting binary masks are combined, followed by contour extraction and largest-contour selection to identify the marker region. Spatial image moments are then used to estimate the marker centroid.
 
-The differences between the initial and final centroid coordinates provided the pixel-level marker displacement, which was converted to physical displacement using the calibrated scale. Horizontal and vertical displacements from the first camera view provided two in-plane displacement components, while horizontal displacement from the approximately orthogonal second view captured the remaining out-of-plane component. Finally, these measurements were mapped to the corresponding $\Delta x$, $\Delta y$, and $\Delta z$ COMSOL coordinate directions according to the known camera orientations, enabling direct experimental validation of the simulated fingertip deformation.
+Differences between the initial and final centroid coordinates provide the pixel-level marker displacement, which is converted to physical displacement using the calibrated scale. Horizontal and vertical displacements from the first camera view provide two in-plane displacement components, while horizontal displacement from the approximately orthogonal second view captures the remaining out-of-plane component. These measurements are subsequently mapped to the corresponding $\Delta x$, $\Delta y$, and $\Delta z$ COMSOL coordinate directions according to the known camera orientations, enabling direct experimental validation of the simulated fingertip deformation.
 
 ---
 
@@ -31,7 +33,7 @@ The differences between the initial and final centroid coordinates provided the 
 
 ## 1. Prepare the Experimental Workspace
 
-Clone or place the following components in the same working location:
+Place the following components in the same working location:
 
 ```text
 dynamixel_motor
@@ -39,7 +41,7 @@ DynamixelSDK
 camera.py
 ```
 
-The `dynamixel_motor` package is used to control the Dynamixel actuator through ROS 2, while `camera.py` simultaneously accesses the two approximately orthogonal cameras and captures the image pairs required for fingertip displacement measurement.
+The `dynamixel_motor` package controls the Dynamixel actuator through ROS 2, while `camera.py` simultaneously accesses the two approximately orthogonal cameras and captures the image pairs required for fingertip displacement measurement.
 
 ---
 
@@ -51,7 +53,7 @@ Run:
 python3 camera.py
 ```
 
-The program opens the two camera views simultaneously.
+The program opens both camera views simultaneously.
 
 Before actuating the Fin-Ray finger, press:
 
@@ -61,7 +63,7 @@ Before actuating the Fin-Ray finger, press:
 
 to capture the **initial configuration** from both cameras.
 
-This produces the initial images corresponding to the two approximately orthogonal views.
+This generates the initial images corresponding to the two approximately orthogonal views.
 
 Keep the camera program running while proceeding with the Dynamixel actuation.
 
@@ -69,33 +71,33 @@ Keep the camera program running while proceeding with the Dynamixel actuation.
 
 ## 3. Start the Dynamixel Motor Node
 
-Open a separate terminal window and run:
+Open a separate terminal and run:
 
 ```bash
 ros2 run dynamixel_motor dynamixel_position_node
 ```
 
-This starts the Dynamixel motor control subscriber node and waits for a command to be published to the motor-control topic.
+This starts the Dynamixel motor-control subscriber node and waits for a command to be published to the motor-control topic.
 
-Keep this terminal running.
+Keep this terminal running throughout the experiment.
 
 ---
 
 ## 4. Actuate the Fin-Ray Finger
 
-Open another terminal window and publish the forward command:
+Open another terminal and publish the forward command:
 
 ```bash
 ros2 topic pub --once /motor_control std_msgs/msg/String "{data: forward}"
 ```
 
-The Dynamixel actuator moves the gripper forward, causing the Fin-Ray finger to deform against the **Ecoflex 00-50 half-proxy with rigid core**.
+The Dynamixel actuator drives the gripper forward, causing the Fin-Ray finger to contact and deform against the **Ecoflex 00-50 half-proxy with rigid core**.
 
 ---
 
 ## 5. Capture the Deformed Configuration
 
-After the finger has contacted and deformed against the half-proxy, return to the previously opened camera window.
+After the finger has contacted and deformed against the half-proxy, return to the camera window.
 
 Press:
 
@@ -113,7 +115,7 @@ q
 
 to exit the camera program.
 
-The image-acquisition stage therefore provides four images:
+The image-acquisition stage generates four images:
 
 ```text
 camera1_image1.png    # Camera 1 - initial configuration
@@ -123,13 +125,13 @@ camera2_image1.png    # Camera 2 - initial configuration
 camera2_image2.png    # Camera 2 - deformed configuration
 ```
 
-These four images are subsequently used for marker detection and three-dimensional fingertip displacement calculation.
+These images are subsequently used for marker detection and three-dimensional fingertip displacement calculation.
 
 ---
 
 # Image Processing and Displacement Calculation
 
-The image-processing stage is performed in a separate **Google Colab** environment using the three Python scripts provided in this repository:
+Image processing is performed in a separate **Google Colab** environment using the three Python scripts provided:
 
 ```text
 Cell 1 → pixel_to_mm_ratio_calculation.py
@@ -137,7 +139,7 @@ Cell 2 → red_marker_identification.py
 Cell 3 → tip_displacement_calculation.py
 ```
 
-The first cell performs a **one-time camera calibration**, while Cells 2 and 3 are repeated for each experimental test position.
+Cell 1 performs a **one-time camera calibration**, while Cells 2 and 3 are repeated for each experimental test position.
 
 ---
 
@@ -145,11 +147,11 @@ The first cell performs a **one-time camera calibration**, while Cells 2 and 3 a
 
 Copy the contents of [`pixel_to_mm_ratio_calculation.py`](pixel_to_mm_ratio_calculation.py) into **Cell 1** of the Google Colab notebook.
 
-Before executing the code, a calibration image pair must be obtained.
+Before executing the code, obtain a calibration image pair.
 
-Using the Dynamixel motor control setup, move the fingertip through a **known displacement along the x-axis**, from calibration position A to position B.
+Using the Dynamixel motor-control setup, move the fingertip through a **known displacement along the x-axis**, from calibration position A to position B.
 
-For the calibration used in this experiment, the known displacement is:
+The known displacement used for calibration is:
 
 ```text
 13.0 mm
@@ -184,7 +186,7 @@ mm/pixel
 
 and is subsequently used to convert image-space marker displacement into physical fingertip displacement.
 
-> **Important:** `pixel_to_mm_ratio_calculation.py` only needs to be executed **once** for the calibrated camera setup. The resulting `PIXEL_TO_MM_RATIO` should then be used for the subsequent displacement calculations.
+> **Important:** `pixel_to_mm_ratio_calculation.py` only needs to be executed **once** for the calibrated camera setup. The resulting `PIXEL_TO_MM_RATIO` should then be used for all subsequent displacement calculations.
 
 ---
 
@@ -209,23 +211,21 @@ Then execute:
 # red_marker_identification.py
 ```
 
-The code identifies the red fingertip marker in each of the four images.
+The code identifies the red fingertip marker in each image using the following procedure:
 
-The marker-detection procedure consists of:
-
-- Loading each captured image
-- Converting the image from BGR to HSV colour space
-- Applying two HSV threshold ranges for red
-- Combining the two red binary masks
-- Extracting contours from the resulting mask
-- Selecting the largest detected red contour
-- Calculating spatial image moments
-- Estimating the centroid of the red marker
-- Storing the marker coordinates for subsequent displacement calculation
+- Load each captured image
+- Convert the image from BGR to HSV colour space
+- Apply two HSV threshold ranges for red
+- Combine the two red binary masks
+- Extract contours from the resulting mask
+- Select the largest detected red contour
+- Calculate spatial image moments
+- Estimate the centroid of the red marker
+- Store the marker coordinates for subsequent displacement calculation
 
 Two HSV ranges are used because red wraps around the beginning and end of the OpenCV HSV hue range.
 
-The detected marker position is also displayed on each image, allowing the marker localization to be visually verified before proceeding with the displacement calculation.
+The detected marker position is displayed on each image, allowing marker localization to be visually verified before proceeding with displacement calculation.
 
 ---
 
@@ -239,7 +239,7 @@ Before executing the code, update:
 PIXEL_TO_MM_RATIO = 0.25
 ```
 
-with the actual calibrated value obtained from **Cell 1**.
+with the calibrated value obtained from **Cell 1**.
 
 Then execute:
 
@@ -249,7 +249,7 @@ Then execute:
 # tip_displacement_calculation.py
 ```
 
-The script uses the marker centroids identified in Cell 2 to calculate the fingertip displacement between the initial and deformed configurations.
+The script uses the marker centroids identified in Cell 2 to calculate fingertip displacement between the initial and deformed configurations.
 
 ### Camera 1
 
@@ -265,7 +265,7 @@ and:
 camera1_image2.png
 ```
 
-is used to determine the displacement corresponding to:
+is used to determine:
 
 $$\Delta x$$
 
@@ -291,11 +291,11 @@ is used to determine the remaining approximately orthogonal displacement compone
 
 $$\Delta z$$
 
-The pixel displacements are converted to millimetres using:
+Pixel displacements are converted to millimetres using:
 
 **Δd (mm) = Δd (pixels) × PIXEL_TO_MM_RATIO**
 
-The resulting measurements are therefore mapped as:
+The measurements are therefore mapped as:
 
 ```text
 Camera 1 horizontal displacement → Δx
@@ -319,9 +319,9 @@ for the tested Fin-Ray finger configuration.
 
 # Repeating the Measurement Across Test Positions
 
-The experimental displacement measurement must be performed at the **P1, P2, and P3 positions** for every Fin-Ray finger design being evaluated, following the test arrangement shown in `Experimental_setup_for_validation.jpeg`.
+The experimental displacement measurement is performed at **P1, P2, and P3** for every Fin-Ray finger design evaluated, following the test arrangement shown in `Experimental_setup_for_validation.jpeg`.
 
-The camera calibration performed using:
+Camera calibration using:
 
 ```text
 pixel_to_mm_ratio_calculation.py
@@ -329,7 +329,7 @@ pixel_to_mm_ratio_calculation.py
 
 is required only once for the calibrated camera configuration.
 
-For each finger and each test position:
+For each finger design and test position:
 
 ```text
 P1
@@ -352,14 +352,14 @@ repeat the following procedure:
 11. Run `tip_displacement_calculation.py`.
 12. Record the resulting $\Delta x$, $\Delta y$, and $\Delta z$ fingertip displacements.
 
-Therefore, **Codes 2 and 3 must be repeated for P1, P2, and P3 for every finger design tested**, while Code 1 is used only for the initial camera calibration.
+Therefore, **Cells 2 and 3 are repeated for P1, P2, and P3 for every finger design**, while Cell 1 is required only for the initial camera calibration.
 
 ---
 
 # Workflow Summary
 
 <p align="center">
-  <img src="workflow.jpeg" alt="workflow" width="95%">
+  <img src="workflow.jpeg" alt="Experimental validation workflow" width="95%">
 </p>
 
-The experimentally measured three-dimensional fingertip displacements can subsequently be compared with the corresponding simulated responses for validation of the optimized Fin-Ray finger designs.
+The experimentally measured three-dimensional fingertip displacements can subsequently be compared with the corresponding simulated responses to validate the optimized Fin-Ray finger designs.
